@@ -1,6 +1,6 @@
 P8105 Project Proposal
 ================
-Riyadh Baksh, Anika Mitchell, Jeong Yun Yang
+Riyadh Baksh (rhb2152), Anika Mitchell (am5088), Jeong Yun Yang (jy3306)
 2024-11-08
 
 ## Tentative Project Title

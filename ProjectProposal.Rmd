@@ -1,6 +1,6 @@
 ---
 title: "P8105 Project Proposal"
-author: "Riyadh Baksh, Anika Mitchell, Jeong Yun Yang"
+author: "Riyadh Baksh (rhb2152), Anika Mitchell (am5088), Jeong Yun Yang (jy3306)"
 date: "`r Sys.Date()`"
 output: github_document
 ---
