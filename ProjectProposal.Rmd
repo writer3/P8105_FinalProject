@@ -1,0 +1,20 @@
+---
+title: "P8105 Project Proposal"
+author: "Riyadh Baksh, Anika Mitchell, Jeong Yun Yang"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+## Tentative Project Title
+
+*Connecting Political Views and Health Metrics*
+
+## Project Motivation
+
+## Intented Final Products
+
+## Anticipated Data Sources
+
+## Planned Analysis / Visualizations / Coding Challenges
+
+## Planned Timeline
