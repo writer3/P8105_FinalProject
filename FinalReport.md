@@ -1,7 +1,7 @@
 Connecting Political Views and Health Metrics
 ================
 Riyadh Baksh (rhb2152), Anika Mitchell (am5088), Jeong Yun Yang (jy3306)
-2024-12-03
+2024-12-04
 
 ## Loading and Cleaning Datasets
 
@@ -78,8 +78,11 @@ health_election =
          premature_death,
          physicians=primary_care_physicians,
          preventable_hospital_stays,
-         flu_vaccinations) |>
-  drop_na()
+         flu_vaccinations)
+
+health_election_with_na = health_election
+
+health_election = drop_na(health_election)
 
 # remove outliers in premature death
 quartiles = quantile(health_election$premature_death, probs=c(.25,.75))
@@ -233,3 +236,60 @@ summary(fit)
     ## Residual standard error: 0.1393 on 4968 degrees of freedom
     ## Multiple R-squared:  0.1253, Adjusted R-squared:  0.1246 
     ## F-statistic: 177.9 on 4 and 4968 DF,  p-value: < 2.2e-16
+
+## Interactive Plots
+
+``` r
+#devtools::install_github("UrbanInstitute/urbnmapr")
+#remotes::install_github("UrbanInstitute/urbnthemes",build_vignettes = TRUE)
+
+library(urbnmapr)
+library(urbnthemes)
+```
+
+``` r
+library(urbnmapr)
+county_data =
+  health_election_with_na |>
+  filter(
+    year==2020
+  ) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_name!="Alaska")
+
+dem =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1") +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+rep =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323") +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+dem/rep
+```
+
+![](FinalReport_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->

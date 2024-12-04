@@ -78,8 +78,11 @@ health_election =
          premature_death,
          physicians=primary_care_physicians,
          preventable_hospital_stays,
-         flu_vaccinations) |>
-  drop_na()
+         flu_vaccinations)
+
+health_election_with_na = health_election
+
+health_election = drop_na(health_election)
 
 # remove outliers in premature death
 quartiles = quantile(health_election$premature_death, probs=c(.25,.75))
@@ -203,6 +206,72 @@ a4 =
 fit = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = health_election)
 summary(fit)
 ```
+
+## Interactive Plots
+
+```{r, message=FALSE}
+#devtools::install_github("UrbanInstitute/urbnmapr")
+#remotes::install_github("UrbanInstitute/urbnthemes",build_vignettes = TRUE)
+
+library(urbnmapr)
+library(urbnthemes)
+```
+
+```{r}
+library(urbnmapr)
+county_data =
+  health_election_with_na |>
+  filter(
+    year==2020
+  ) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_name!="Alaska")
+
+dem =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1") +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+rep =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323") +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+dem/rep
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
