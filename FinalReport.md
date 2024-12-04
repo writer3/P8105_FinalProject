@@ -205,3 +205,31 @@ a4 =
 ```
 
 ![](FinalReport_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+fit = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = health_election)
+summary(fit)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = republican ~ premature_death + physicians + preventable_hospital_stays + 
+    ##     flu_vaccinations, data = health_election)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -0.64915 -0.08280  0.01756  0.09778  0.38889 
+    ## 
+    ## Coefficients:
+    ##                             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)                 0.623874   0.002452 254.404  < 2e-16 ***
+    ## premature_death             0.024969   0.002727   9.156  < 2e-16 ***
+    ## physicians                  0.077697   0.004723  16.449  < 2e-16 ***
+    ## preventable_hospital_stays  0.005298   0.002734   1.938   0.0527 .  
+    ## flu_vaccinations           -0.016496   0.002497  -6.605 4.39e-11 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.1393 on 4968 degrees of freedom
+    ## Multiple R-squared:  0.1253, Adjusted R-squared:  0.1246 
+    ## F-statistic: 177.9 on 4 and 4968 DF,  p-value: < 2.2e-16

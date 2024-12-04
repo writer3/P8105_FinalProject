@@ -199,7 +199,10 @@ a4 =
 (a1 + a2)/(a3 + a4)
 ```
 
-
+```{r}
+fit = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = health_election)
+summary(fit)
+```
 
 
 
