@@ -13,6 +13,7 @@ We are ONLY looking at 2012 and 2016 as these have the most complete data.
 library(tidyverse)
 ```
 
+Cleaning the `election` dataset, which contains information such as county name, state, year, party, and total votes. Using the mutate function to calculate the percentage of votes. Identifying the common variable of `county_fips`that is present in both the `election` and `health` datasets. 
 
 ```{r, message=FALSE}
 election =

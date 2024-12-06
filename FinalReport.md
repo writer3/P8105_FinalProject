@@ -1,7 +1,7 @@
 Connecting Political Views and Health Metrics
 ================
 Riyadh Baksh (rhb2152), Anika Mitchell (am5088), Jeong Yun Yang (jy3306)
-2024-12-05
+2024-12-06
 
 We are ONLY looking at 2012 and 2016 as these have the most complete
 data.
@@ -11,6 +11,12 @@ data.
 ``` r
 library(tidyverse)
 ```
+
+Cleaning the `election` dataset, which contains information such as
+county name, state, year, party, and total votes. Using the mutate
+function to calculate the percentage of votes. Identifying the common
+variable of `county_fips`that is present in both the `election` and
+`health` datasets.
 
 ``` r
 election =
@@ -235,10 +241,10 @@ knitr::kable(reg, digits=3,caption="Regression Coefficients on Percent Republica
 | term                       | US_Overall | US_2012 | US_2016 | NY_Overall | NY_2012 | NY_2016 |
 |:---------------------------|-----------:|--------:|--------:|-----------:|--------:|--------:|
 | (Intercept)                |      0.624 |   0.600 |   0.641 |      0.520 |   0.431 |   0.548 |
-| premature_death            |      0.025 |   0.016 |   0.023 |      0.113 |   0.051 |   0.109 |
-| physicians                 |      0.078 |   0.062 |   0.089 |      0.079 |   0.067 |   0.106 |
+| premature_death            |      0.025 |   0.016 |   0.024 |      0.113 |   0.051 |   0.109 |
+| physicians                 |      0.079 |   0.064 |   0.090 |      0.079 |   0.067 |   0.106 |
 | preventable_hospital_stays |      0.005 |   0.008 |   0.016 |     -0.027 |  -0.009 |   0.009 |
-| flu_vaccinations           |     -0.016 |  -0.010 |  -0.024 |      0.088 |   0.078 |   0.102 |
+| flu_vaccinations           |     -0.015 |  -0.009 |  -0.022 |      0.088 |   0.078 |   0.102 |
 
 Regression Coefficients on Percent Republican
 
@@ -256,7 +262,7 @@ knitr::kable(r2, digits=3,caption="R2 Values")
 
 | US_Overall | US_2012 | US_2016 | NY_Overall | NY_2012 | NY_2016 |
 |-----------:|--------:|--------:|-----------:|--------:|--------:|
-|      0.125 |   0.076 |   0.179 |      0.387 |   0.313 |   0.439 |
+|      0.125 |   0.077 |   0.177 |      0.387 |   0.313 |   0.439 |
 
 R2 Values
 
