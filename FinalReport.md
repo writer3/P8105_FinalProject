@@ -39,6 +39,11 @@ election =
   janitor::clean_names()
 ```
 
+Identified four measures that are the most robust in the datasets:
+`Premature death`, `PReventable hospital stays`,
+`Primary care physicians`, and `flu vaccinations`. Filtering for these
+four measurements.
+
 ``` r
 health =
   read_csv("data/health.csv") |>
