@@ -42,7 +42,9 @@ election =
 Identified four measures that are the most robust in the datasets:
 `Premature death`, `PReventable hospital stays`,
 `Primary care physicians`, and `flu vaccinations`. Filtering for these
-four measurements.
+four measurements. Since these measurements have different units. Here
+we try to standardize for data visualization by converting the
+measurements into standard deviations.
 
 ``` r
 health =
@@ -74,6 +76,9 @@ health =
 
 ## Exploratory Analysis
 
+This plot looks at the overall party make-up of the counties in the
+dataset.
+
 ``` r
 election |>
   drop_na() |>
@@ -81,6 +86,12 @@ election |>
 ```
 
 ![](FinalReport_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+Here we join the `election` and `health` datasets by a common variable
+`county_fips`. Through our exploratory analysis, we found that years
+2012 - 2016 had the least amount of missing data, hence we filter for
+data between these years. Then we remove the outliers for each
+measurements.
 
 ``` r
 health_election =
