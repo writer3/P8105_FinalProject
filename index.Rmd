@@ -1,0 +1,29 @@
+---
+title: "Connecting Political Views with Health Metrics"
+---
+
+### Motivation
+
+The goal of this project is emulate an *ecological* study in order to understand and visualize the relationship between political trends and outcomes on county-level public health in the United States. Specifically, we are interested in the potential correlations between a variety of health metrics and presidential election results in both 2012 and 2016. By understanding the relationship between these data, this project aims to understand sociopolitical and socioeconomic implications for health and wellbeing at a county level, and offer insights into patterns that may offer recommendations for broader application.
+
+### Related Work
+
+The inspiration for this project comes from a growing  body of scientific literature aimed at understanding how health transforms as the sociopolitical climate shifts.
+
+For example, Salas-Guerra’s 2021 multivariate correlational analysis of four U.S states (California, New York, Texas, and Florida) investigated political affiliation and viral contagion/mortality from COVID-19. Findings indicated poverty and lack of insurance as a main risk factor for the COVID contagion in Republican states (Salas-Guerra, 2021).
+
+Other studies such as Bor’s 2017 study “*Diverging Life Expectancies and Voting Patterns in the 2016 US Presidential Election*” examined voting patterns and life expectancy at the county level. Main findings included voting patterns undermining the overall health of the voter; that is, a pattern was detected of residents who voted for Trump or didn’t vote at all in 2016 and were most likely to be residents of counties that experienced not only economic insecurity but decreased public health indicated by higher mortality rates (Bor 2017).
+
+Curtis et al.’s 2021 study “*Life expectancy and voting patterns in the 2020 U.S presidential election*” came to similar conclusions leveraging county-level life expectancy data and voting data scraped from news outlets. Specifically, they found that despite large shifts towards Democratic candidates, communities that were most impacted by lower life expectancy and lower health tended to vote Republican (Curtis et al., 2021).
+
+The results of these studies indicate a key point of interest related to what communities choose to vote for compared to what those implications on their health are. Our project aims to add to this body of data analysis with a specific focus on health indicators like premature death, preventable hospital stays, number of physicians geographically, and flu vaccinations.
+
+### Initial Questions
+
+Our main research question is: how do national and county level bipartisan voting patterns impact key health indicators (premature death, preventable hospital stays, number of physicians, and vaccination status) in 2012 and 2016. Our original research question was interested in assessing this relationship from 2000-2020, however we chose to constrain our data to using only 2012 and 2016 data after conducting early data wrangling and exploratory analyses that identified this set of time as having the most robust dataset available to appropriately assess our relationship of interest. Additionally, this date range (2012-2016) is of particular public health interest, as the decades long trend of increased life expectancy between 1959 and 2016 started to noticeably slow down after 2014 (Woolf and Schoomaker, 2019).
+
+### Datasets
+
+For information on health outcomes by county and by year, we used information from this source: https://www.countyhealthrankings.org/health-data/methodology-and-sources/data-documentation
+
+For data on election results by county and by year, we consulted the MIT election datasets: https://electionlab.mit.edu/data

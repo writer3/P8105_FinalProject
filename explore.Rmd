@@ -1,0 +1,595 @@
+---
+title: "Exploratory Analysis"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE,warning=FALSE)
+```
+
+```{r}
+library(tidyverse)
+
+election =
+  read_csv("data/election.csv") |>
+  filter(party=="DEMOCRAT" | party=="REPUBLICAN") |>
+  group_by(county_fips,county_name,state_po,year,party,totalvotes) |>
+  summarize(
+    votes = sum(candidatevotes)
+  ) |>
+  mutate(
+    percent = votes/totalvotes,
+    county_fips = sprintf("%05d",county_fips),
+    year_county = paste(year,county_fips,sep="-")
+  ) |>
+  select(-totalvotes,-votes) |>
+  pivot_wider(
+    names_from = "party",
+    values_from = "percent"
+  ) |>
+  janitor::clean_names()
+
+health =
+  read_csv("data/health.csv") |>
+  mutate(
+    year = substr(yearspan,start=1,stop=4),
+    county_fips = paste(statecode,countycode,sep=""),
+    year_county = paste(year,county_fips,sep="-")
+  ) |>
+  filter(
+    measurename == "Premature death" |
+    measurename == "Preventable hospital stays" |
+    measurename == "Primary care physicians" |
+    measurename == "Flu vaccinations"
+  ) |>
+  select(year_county,year,county_fips,county,state,measurename,rawvalue) |>
+  pivot_wider(
+    names_from = "measurename",
+    values_from = "rawvalue"
+  ) |>
+  janitor::clean_names() |>
+  mutate(
+    premature_death = scale(premature_death),
+    primary_care_physicians = scale(primary_care_physicians),
+    preventable_hospital_stays = scale(preventable_hospital_stays),
+    flu_vaccinations = scale(flu_vaccinations)
+  )
+
+health_election =
+  left_join(election,health,by="year_county") |>
+  rename(
+    county_fips=county_fips.x,
+    year=year.x) |>
+  select(county_fips,county_name,state_po,year,democrat,republican,
+         premature_death,
+         physicians=primary_care_physicians,
+         preventable_hospital_stays,
+         flu_vaccinations) |>
+  filter(year==2012 | year==2016)
+
+health_election_with_na = health_election
+
+health_election = drop_na(health_election)
+
+# remove outliers in premature death
+quartiles = quantile(health_election$premature_death, probs=c(.25,.75))
+IQR = IQR(health_election$premature_death)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    premature_death > lower &
+    premature_death < upper
+  )
+
+# remove outliers in primary care physicians
+quartiles = quantile(health_election$physicians, probs=c(.25,.75))
+IQR = IQR(health_election$physicians)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    physicians > lower &
+    physicians < upper
+  )
+
+# remove outliers in preventable hospital stays
+quartiles = quantile(health_election$preventable_hospital_stays, probs=c(.25,.75))
+IQR = IQR(health_election$preventable_hospital_stays)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    preventable_hospital_stays > lower &
+    preventable_hospital_stays < upper
+  )
+
+# remove outliers in flu vaccinations
+quartiles = quantile(health_election$flu_vaccinations, probs=c(.25,.75))
+IQR = IQR(health_election$flu_vaccinations)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    flu_vaccinations > lower &
+    flu_vaccinations < upper
+  )
+```
+
+We first started by exploring each dataset individually. For the `election` data, a plot was made comparing the county vote share for `democrat` and for `republican`. It was observed that in many counties, the sum of the `democrat` and `republican` percents do not add to 1, which indicates the presence of third-parties. That being said, the graph below shows there's a limit where no points are above the line $y=x$. This makes sense because the vote share in a specific county cannot exceed 100%.
+
+```{r}
+election |>
+  drop_na() |>
+  ggplot(aes(x=democrat,y=republican)) + geom_point()
+```
+
+Next, we considered how the four health variables under investigation are related to each other. This was important to make sure they are all independent from each other. In general, there is largely random distribution of points, so there is no clear pattern. However, the relationship between `premature_death` and `preventable_hospital_stays` does suggest a positive correlation. Counties with higher premature death rates also seem to have more preventable hospital stays, which makes sense because a premature death means by definition that it was a preventable death. There also seems to be a negative correlation between `premature_death` and `flu_vaccinations`. With greater flu vaccinations, we observe fewer premature deaths.
+
+```{r}
+library(patchwork)
+
+p1 =
+  health_election |>
+  ggplot(aes(x=premature_death,y=physicians)) +
+  geom_point(size=0.5)
+
+p2 =
+  health_election |>
+  ggplot(aes(x=premature_death,y=preventable_hospital_stays)) +
+  geom_point(size=0.5)
+
+p3 =
+  health_election |>
+  ggplot(aes(x=premature_death,y=flu_vaccinations)) +
+  geom_point(size=0.5)
+
+p4 =
+  health_election |>
+  ggplot(aes(x=physicians,y=preventable_hospital_stays)) +
+  geom_point(size=0.5)
+
+p5 =
+  health_election |>
+  ggplot(aes(x=physicians,y=flu_vaccinations)) +
+  geom_point(size=0.5)
+
+p6 =
+  health_election |>
+  ggplot(aes(x=preventable_hospital_stays,y=flu_vaccinations)) +
+  geom_point(size=0.5)
+
+(p1 + p2 + p3) / (p4 + p5 + p6)
+
+
+```
+
+Now, we began to look at the correlation between election results and these four health metrics. For simplicity, the outcome or response variable was chosen to be the `republican` vote share. However, as we demonstrated above, this is negatively correlated with the `democrat` vote share.
+
+There does seem to be a lot of random scatter and a clear pattern is hard to justify. However, some interesting observations are the positive correlations between `physicians` and `republican` vote share. There also seems to be a negative correlation between `flu_vaccinations` and `republican` vote share.
+
+```{r}
+a1 =
+  health_election |>
+  ggplot(aes(x=premature_death,y=republican)) + geom_point(size=0.5)
+
+a2 =
+  health_election |>
+  ggplot(aes(x=physicians,y=republican)) + geom_point(size=0.5)
+
+a3 =
+  health_election |>
+  ggplot(aes(x=preventable_hospital_stays,y=republican)) + geom_point(size=0.5)
+
+a4 =
+  health_election |>
+  ggplot(aes(x=flu_vaccinations,y=republican)) + geom_point(size=0.5)
+
+(a1 + a2)/(a3 + a4)
+```
+
+### Geographic Plots
+
+We also decided to include maps as part of the exploratory analysis. The plots below show the nationwide county-level vote share. The darker blue represents higher `democrat` vote share. The darker red represents higher `republican` vote share. As expected, these are inversely related - that is, a darker blue area would also be lighter red. To improve comparability, the scales are fixed so that the same shade of blue, for example, means the same thing between the two years. We noticed that when going from 2012 to 2016, the map became a lot lighter blue, reflecting the decrease in the democrat popular vote from 2012 to 2016. Note: Alaska was removed due to a different way of assigning counties, and thus Hawaii was also removed so that we only considered the contiguous US.
+
+```{r}
+#devtools::install_github("UrbanInstitute/urbnmapr")
+#remotes::install_github("UrbanInstitute/urbnthemes",build_vignettes = TRUE)
+
+library(urbnmapr)
+library(urbnthemes)
+```
+
+```{r}
+library(urbnmapr)
+
+# Plots for 2012
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_name!="Alaska" & state_name!="Hawaii")
+
+dem_2012 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle("2012") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1",
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+rep_2012 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323",
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+# Plots for 2016
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_name!="Alaska" & state_name!="Hawaii")
+
+dem_2016 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle("2016") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1",
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+rep_2016 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323",
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = "#ffffff") +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+(dem_2012+dem_2016)/(rep_2012+rep_2016)
+```
+
+While the intention was to look at nationwide correlations, we realized that there are many factors that influence voting across an entire country. It is also more difficult to identify trends in large heterogeneous populations. Therefore, we decided to also zoom in on New York state. We also observed that from 2012 to 2016, the state became lighter blue and darker red.
+
+```{r}
+# Plots for 2012
+
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+dem_2012 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle("2012") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1",
+                      limits=c(0.2,0.9)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+rep_2012 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323",
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+# Plots for 2016
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+dem_2016 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle("2016") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1",
+                      limits=c(0.2,0.9)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+rep_2016 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323",
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+(dem_2012+dem_2016)/(rep_2012+rep_2016)
+```
+
+Next, we considered the geographic distributions of the health metrics. It would be difficult to see trends across the entire US, so instead, we are only looking at New York state.
+
+There does not seem to be a clear pattern for `premature_death`, as some counties became lighter whereas others became darker.
+
+```{r}
+# PREMATURE DEATH
+
+# Plot for 2012
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2012 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = premature_death)) +
+  ggtitle("2012") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-2,0.5)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "premature_death") +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2016 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = premature_death)) +
+  ggtitle("2016") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-2,0.5)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "premature_death") +
+  theme_urbn_map()
+
+plot_2012 + plot_2016
+```
+
+The `physicians` rate in each county appears to stay roughly constant when going from 2012 to 2016.
+
+```{r}
+# PHYSICIANS
+
+# Plot for 2012
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2012 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = physicians)) +
+  ggtitle("2012") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-1,1.2)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "physicians") +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2016 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = physicians)) +
+  ggtitle("2016") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-1,1.2)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "physicians") +
+  theme_urbn_map()
+
+plot_2012 + plot_2016
+```
+
+At first glance, it seems that there were fewer `preventable_hospital_stays` in 2016 compared to 2012.
+
+```{r}
+# PREVENTABLE HOSPITAL STAYS
+
+# Plot for 2012
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2012 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = preventable_hospital_stays)) +
+  ggtitle("2012") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-1.2,1.8)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "preventable_hospital_stays") +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2016 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = preventable_hospital_stays)) +
+  ggtitle("2016") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-1.2,1.8)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "preventable_hospital_stays") +
+  theme_urbn_map()
+
+plot_2012 + plot_2016
+```
+
+Further, `flu_vaccinations` seems to have stayed roughly constant from 2012 to 2016.
+
+```{r}
+# FLU VACCINATIONS
+
+# Plot for 2012
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2012 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = flu_vaccinations)) +
+  ggtitle("2012") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-1,1.4)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "flu_vaccinations") +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_po=="NY")
+
+plot_2016 =
+  county_data |>
+  ggplot(aes(long, lat, group = group, fill = flu_vaccinations)) +
+  ggtitle("2016") +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = "colourbar",
+                      low="#cce7c9",
+                      high="#276221",
+                      limits=c(-1,1.4)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, "in")) +
+  labs(fill = "flu_vaccinations") +
+  theme_urbn_map()
+
+plot_2012 + plot_2016
+```

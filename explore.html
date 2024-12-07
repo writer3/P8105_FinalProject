@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Exploratory Analysis</title>
+
+<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cerulean.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="explore.html">Exploratory Analysis</a>
+</li>
+<li>
+  <a href="stats.html">Statistical Analysis</a>
+</li>
+<li>
+  <a href="discuss.html">Discussion</a>
+</li>
+<li>
+  <a href="dashboard.html">Dashboard</a>
+</li>
+<li>
+  <a href="FinalReport.html">Report</a>
+</li>
+<li>
+  <a href="https://github.com/RiyadhHBaksh/P8105_FinalProject">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Exploratory Analysis</h1>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#geographic-plots" id="toc-geographic-plots">Geographic
+Plots</a></li>
+</ul>
+</div>
+
+<pre class="r"><code>library(tidyverse)
+
+election =
+  read_csv(&quot;data/election.csv&quot;) |&gt;
+  filter(party==&quot;DEMOCRAT&quot; | party==&quot;REPUBLICAN&quot;) |&gt;
+  group_by(county_fips,county_name,state_po,year,party,totalvotes) |&gt;
+  summarize(
+    votes = sum(candidatevotes)
+  ) |&gt;
+  mutate(
+    percent = votes/totalvotes,
+    county_fips = sprintf(&quot;%05d&quot;,county_fips),
+    year_county = paste(year,county_fips,sep=&quot;-&quot;)
+  ) |&gt;
+  select(-totalvotes,-votes) |&gt;
+  pivot_wider(
+    names_from = &quot;party&quot;,
+    values_from = &quot;percent&quot;
+  ) |&gt;
+  janitor::clean_names()
+
+health =
+  read_csv(&quot;data/health.csv&quot;) |&gt;
+  mutate(
+    year = substr(yearspan,start=1,stop=4),
+    county_fips = paste(statecode,countycode,sep=&quot;&quot;),
+    year_county = paste(year,county_fips,sep=&quot;-&quot;)
+  ) |&gt;
+  filter(
+    measurename == &quot;Premature death&quot; |
+    measurename == &quot;Preventable hospital stays&quot; |
+    measurename == &quot;Primary care physicians&quot; |
+    measurename == &quot;Flu vaccinations&quot;
+  ) |&gt;
+  select(year_county,year,county_fips,county,state,measurename,rawvalue) |&gt;
+  pivot_wider(
+    names_from = &quot;measurename&quot;,
+    values_from = &quot;rawvalue&quot;
+  ) |&gt;
+  janitor::clean_names() |&gt;
+  mutate(
+    premature_death = scale(premature_death),
+    primary_care_physicians = scale(primary_care_physicians),
+    preventable_hospital_stays = scale(preventable_hospital_stays),
+    flu_vaccinations = scale(flu_vaccinations)
+  )
+
+health_election =
+  left_join(election,health,by=&quot;year_county&quot;) |&gt;
+  rename(
+    county_fips=county_fips.x,
+    year=year.x) |&gt;
+  select(county_fips,county_name,state_po,year,democrat,republican,
+         premature_death,
+         physicians=primary_care_physicians,
+         preventable_hospital_stays,
+         flu_vaccinations) |&gt;
+  filter(year==2012 | year==2016)
+
+health_election_with_na = health_election
+
+health_election = drop_na(health_election)
+
+# remove outliers in premature death
+quartiles = quantile(health_election$premature_death, probs=c(.25,.75))
+IQR = IQR(health_election$premature_death)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |&gt;
+  filter(
+    premature_death &gt; lower &amp;
+    premature_death &lt; upper
+  )
+
+# remove outliers in primary care physicians
+quartiles = quantile(health_election$physicians, probs=c(.25,.75))
+IQR = IQR(health_election$physicians)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |&gt;
+  filter(
+    physicians &gt; lower &amp;
+    physicians &lt; upper
+  )
+
+# remove outliers in preventable hospital stays
+quartiles = quantile(health_election$preventable_hospital_stays, probs=c(.25,.75))
+IQR = IQR(health_election$preventable_hospital_stays)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |&gt;
+  filter(
+    preventable_hospital_stays &gt; lower &amp;
+    preventable_hospital_stays &lt; upper
+  )
+
+# remove outliers in flu vaccinations
+quartiles = quantile(health_election$flu_vaccinations, probs=c(.25,.75))
+IQR = IQR(health_election$flu_vaccinations)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |&gt;
+  filter(
+    flu_vaccinations &gt; lower &amp;
+    flu_vaccinations &lt; upper
+  )</code></pre>
+<p>We first started by exploring each dataset individually. For the
+<code>election</code> data, a plot was made comparing the county vote
+share for <code>democrat</code> and for <code>republican</code>. It was
+observed that in many counties, the sum of the <code>democrat</code> and
+<code>republican</code> percents do not add to 1, which indicates the
+presence of third-parties. That being said, the graph below shows
+there’s a limit where no points are above the line <span
+class="math inline">\(y=x\)</span>. This makes sense because the vote
+share in a specific county cannot exceed 100%.</p>
+<pre class="r"><code>election |&gt;
+  drop_na() |&gt;
+  ggplot(aes(x=democrat,y=republican)) + geom_point()</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Next, we considered how the four health variables under investigation
+are related to each other. This was important to make sure they are all
+independent from each other. In general, there is largely random
+distribution of points, so there is no clear pattern. However, the
+relationship between <code>premature_death</code> and
+<code>preventable_hospital_stays</code> does suggest a positive
+correlation. Counties with higher premature death rates also seem to
+have more preventable hospital stays, which makes sense because a
+premature death means by definition that it was a preventable death.
+There also seems to be a negative correlation between
+<code>premature_death</code> and <code>flu_vaccinations</code>. With
+greater flu vaccinations, we observe fewer premature deaths.</p>
+<pre class="r"><code>library(patchwork)
+
+p1 =
+  health_election |&gt;
+  ggplot(aes(x=premature_death,y=physicians)) +
+  geom_point(size=0.5)
+
+p2 =
+  health_election |&gt;
+  ggplot(aes(x=premature_death,y=preventable_hospital_stays)) +
+  geom_point(size=0.5)
+
+p3 =
+  health_election |&gt;
+  ggplot(aes(x=premature_death,y=flu_vaccinations)) +
+  geom_point(size=0.5)
+
+p4 =
+  health_election |&gt;
+  ggplot(aes(x=physicians,y=preventable_hospital_stays)) +
+  geom_point(size=0.5)
+
+p5 =
+  health_election |&gt;
+  ggplot(aes(x=physicians,y=flu_vaccinations)) +
+  geom_point(size=0.5)
+
+p6 =
+  health_election |&gt;
+  ggplot(aes(x=preventable_hospital_stays,y=flu_vaccinations)) +
+  geom_point(size=0.5)
+
+(p1 + p2 + p3) / (p4 + p5 + p6)</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Now, we began to look at the correlation between election results and
+these four health metrics. For simplicity, the outcome or response
+variable was chosen to be the <code>republican</code> vote share.
+However, as we demonstrated above, this is negatively correlated with
+the <code>democrat</code> vote share.</p>
+<p>There does seem to be a lot of random scatter and a clear pattern is
+hard to justify. However, some interesting observations are the positive
+correlations between <code>physicians</code> and <code>republican</code>
+vote share. There also seems to be a negative correlation between
+<code>flu_vaccinations</code> and <code>republican</code> vote
+share.</p>
+<pre class="r"><code>a1 =
+  health_election |&gt;
+  ggplot(aes(x=premature_death,y=republican)) + geom_point(size=0.5)
+
+a2 =
+  health_election |&gt;
+  ggplot(aes(x=physicians,y=republican)) + geom_point(size=0.5)
+
+a3 =
+  health_election |&gt;
+  ggplot(aes(x=preventable_hospital_stays,y=republican)) + geom_point(size=0.5)
+
+a4 =
+  health_election |&gt;
+  ggplot(aes(x=flu_vaccinations,y=republican)) + geom_point(size=0.5)
+
+(a1 + a2)/(a3 + a4)</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<div id="geographic-plots" class="section level3">
+<h3>Geographic Plots</h3>
+<p>We also decided to include maps as part of the exploratory analysis.
+The plots below show the nationwide county-level vote share. The darker
+blue represents higher <code>democrat</code> vote share. The darker red
+represents higher <code>republican</code> vote share. As expected, these
+are inversely related - that is, a darker blue area would also be
+lighter red. To improve comparability, the scales are fixed so that the
+same shade of blue, for example, means the same thing between the two
+years. We noticed that when going from 2012 to 2016, the map became a
+lot lighter blue, reflecting the decrease in the democrat popular vote
+from 2012 to 2016. Note: Alaska was removed due to a different way of
+assigning counties, and thus Hawaii was also removed so that we only
+considered the contiguous US.</p>
+<pre class="r"><code>#devtools::install_github(&quot;UrbanInstitute/urbnmapr&quot;)
+#remotes::install_github(&quot;UrbanInstitute/urbnthemes&quot;,build_vignettes = TRUE)
+
+library(urbnmapr)
+library(urbnthemes)</code></pre>
+<pre class="r"><code>library(urbnmapr)
+
+# Plots for 2012
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2012) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_name!=&quot;Alaska&quot; &amp; state_name!=&quot;Hawaii&quot;)
+
+dem_2012 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle(&quot;2012&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#f5fbff&quot;,
+                      high=&quot;#4169e1&quot;,
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = &quot;#ffffff&quot;) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;democrat&quot;) +
+  theme_urbn_map()
+
+rep_2012 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#fdf5f5&quot;,
+                      high=&quot;#dc2323&quot;,
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = &quot;#ffffff&quot;) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;republican&quot;) +
+  theme_urbn_map()
+
+# Plots for 2016
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2016) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_name!=&quot;Alaska&quot; &amp; state_name!=&quot;Hawaii&quot;)
+
+dem_2016 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle(&quot;2016&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#f5fbff&quot;,
+                      high=&quot;#4169e1&quot;,
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = &quot;#ffffff&quot;) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;democrat&quot;) +
+  theme_urbn_map()
+
+rep_2016 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#fdf5f5&quot;,
+                      high=&quot;#dc2323&quot;,
+                      limits=c(0.05,0.95)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group),
+               fill = NA, color = &quot;#ffffff&quot;) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;republican&quot;) +
+  theme_urbn_map()
+
+(dem_2012+dem_2016)/(rep_2012+rep_2016)</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>While the intention was to look at nationwide correlations, we
+realized that there are many factors that influence voting across an
+entire country. It is also more difficult to identify trends in large
+heterogeneous populations. Therefore, we decided to also zoom in on New
+York state. We also observed that from 2012 to 2016, the state became
+lighter blue and darker red.</p>
+<pre class="r"><code># Plots for 2012
+
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2012) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+dem_2012 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle(&quot;2012&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#f5fbff&quot;,
+                      high=&quot;#4169e1&quot;,
+                      limits=c(0.2,0.9)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;democrat&quot;) +
+  theme_urbn_map()
+
+rep_2012 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#fdf5f5&quot;,
+                      high=&quot;#dc2323&quot;,
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;republican&quot;) +
+  theme_urbn_map()
+
+# Plots for 2016
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2016) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+dem_2016 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  ggtitle(&quot;2016&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#f5fbff&quot;,
+                      high=&quot;#4169e1&quot;,
+                      limits=c(0.2,0.9)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;democrat&quot;) +
+  theme_urbn_map()
+
+rep_2016 =
+county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = &quot;colourbar&quot;,
+                      low=&quot;#fdf5f5&quot;,
+                      high=&quot;#dc2323&quot;,
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;republican&quot;) +
+  theme_urbn_map()
+
+(dem_2012+dem_2016)/(rep_2012+rep_2016)</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Next, we considered the geographic distributions of the health
+metrics. It would be difficult to see trends across the entire US, so
+instead, we are only looking at New York state.</p>
+<p>There does not seem to be a clear pattern for
+<code>premature_death</code>, as some counties became lighter whereas
+others became darker.</p>
+<pre class="r"><code># PREMATURE DEATH
+
+# Plot for 2012
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2012) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2012 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = premature_death)) +
+  ggtitle(&quot;2012&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-2,0.5)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;premature_death&quot;) +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2016) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2016 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = premature_death)) +
+  ggtitle(&quot;2016&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-2,0.5)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;premature_death&quot;) +
+  theme_urbn_map()
+
+plot_2012 + plot_2016</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>The <code>physicians</code> rate in each county appears to stay
+roughly constant when going from 2012 to 2016.</p>
+<pre class="r"><code># PHYSICIANS
+
+# Plot for 2012
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2012) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2012 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = physicians)) +
+  ggtitle(&quot;2012&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-1,1.2)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;physicians&quot;) +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2016) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2016 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = physicians)) +
+  ggtitle(&quot;2016&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-1,1.2)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;physicians&quot;) +
+  theme_urbn_map()
+
+plot_2012 + plot_2016</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>At first glance, it seems that there were fewer
+<code>preventable_hospital_stays</code> in 2016 compared to 2012.</p>
+<pre class="r"><code># PREVENTABLE HOSPITAL STAYS
+
+# Plot for 2012
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2012) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2012 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = preventable_hospital_stays)) +
+  ggtitle(&quot;2012&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-1.2,1.8)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;preventable_hospital_stays&quot;) +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2016) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2016 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = preventable_hospital_stays)) +
+  ggtitle(&quot;2016&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-1.2,1.8)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;preventable_hospital_stays&quot;) +
+  theme_urbn_map()
+
+plot_2012 + plot_2016</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Further, <code>flu_vaccinations</code> seems to have stayed roughly
+constant from 2012 to 2016.</p>
+<pre class="r"><code># FLU VACCINATIONS
+
+# Plot for 2012
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2012) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2012 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = flu_vaccinations)) +
+  ggtitle(&quot;2012&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-1,1.4)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;flu_vaccinations&quot;) +
+  theme_urbn_map()
+
+# Plot for 2016
+county_data =
+  health_election_with_na |&gt;
+  filter(year==2016) |&gt;
+  right_join(counties,by=&quot;county_fips&quot;) |&gt;
+  filter(state_po==&quot;NY&quot;)
+
+plot_2016 =
+  county_data |&gt;
+  ggplot(aes(long, lat, group = group, fill = flu_vaccinations)) +
+  ggtitle(&quot;2016&quot;) +
+  geom_polygon(color = NA) +
+  scale_fill_gradient(guide = &quot;colourbar&quot;,
+                      low=&quot;#cce7c9&quot;,
+                      high=&quot;#276221&quot;,
+                      limits=c(-1,1.4)) +
+  coord_map(projection = &quot;albers&quot;, lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+  legend.key.width = unit(.5, &quot;in&quot;)) +
+  labs(fill = &quot;flu_vaccinations&quot;) +
+  theme_urbn_map()
+
+plot_2012 + plot_2016</code></pre>
+<p><img src="explore_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

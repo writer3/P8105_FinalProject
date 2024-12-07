@@ -1,0 +1,23 @@
+name: "Connecting Political Views and Health Metrics"
+output_dir: "."
+navbar:
+  title: "Home"
+  right:
+    - text: "Exploratory Analysis"
+      href: explore.html
+    - text: "Statistical Analysis"
+      href: stats.html
+    - text: "Discussion"
+      href: discuss.html
+    - text: "Political Maps"
+      href: dashboard.html
+    - text: "Health Maps"
+      href: dashboard_health.html
+    - text: "Report"
+      href: FinalReport.html
+    - icon: fa-github fa-lg
+      href: https://github.com/RiyadhHBaksh/P8105_FinalProject
+output:
+  html_document:
+    code_folding: hide
+    theme: cerulean

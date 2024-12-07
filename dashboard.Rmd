@@ -1,0 +1,192 @@
+---
+title: "Political Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+knitr::opts_chunk$set(message=FALSE,warning=FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+
+election =
+  read_csv("data/election.csv") |>
+  filter(party=="DEMOCRAT" | party=="REPUBLICAN") |>
+  group_by(county_fips,county_name,state_po,year,party,totalvotes) |>
+  summarize(
+    votes = sum(candidatevotes)
+  ) |>
+  mutate(
+    percent = votes/totalvotes,
+    county_fips = sprintf("%05d",county_fips),
+    year_county = paste(year,county_fips,sep="-")
+  ) |>
+  select(-totalvotes,-votes) |>
+  pivot_wider(
+    names_from = "party",
+    values_from = "percent"
+  ) |>
+  janitor::clean_names()
+
+health =
+  read_csv("data/health.csv") |>
+  mutate(
+    year = substr(yearspan,start=1,stop=4),
+    county_fips = paste(statecode,countycode,sep=""),
+    year_county = paste(year,county_fips,sep="-")
+  ) |>
+  filter(
+    measurename == "Premature death" |
+    measurename == "Preventable hospital stays" |
+    measurename == "Primary care physicians" |
+    measurename == "Flu vaccinations"
+  ) |>
+  select(year_county,year,county_fips,county,state,measurename,rawvalue) |>
+  pivot_wider(
+    names_from = "measurename",
+    values_from = "rawvalue"
+  ) |>
+  janitor::clean_names() |>
+  mutate(
+    premature_death = scale(premature_death),
+    primary_care_physicians = scale(primary_care_physicians),
+    preventable_hospital_stays = scale(preventable_hospital_stays),
+    flu_vaccinations = scale(flu_vaccinations)
+  )
+
+health_election =
+  left_join(election,health,by="year_county") |>
+  rename(
+    county_fips=county_fips.x,
+    year=year.x) |>
+  select(county_fips,county_name,state_po,year,democrat,republican,
+         premature_death,
+         physicians=primary_care_physicians,
+         preventable_hospital_stays,
+         flu_vaccinations) |>
+  filter(year==2012 | year==2016)
+
+health_election_with_na = health_election
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### 2012 Democrat Vote
+
+```{r}
+#devtools::install_github("UrbanInstitute/urbnmapr")
+#remotes::install_github("UrbanInstitute/urbnthemes",build_vignettes = TRUE)
+library(urbnmapr)
+library(urbnthemes)
+library(plotly)
+
+county_data =
+  health_election_with_na |>
+  filter(year==2012) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_name!="Alaska" & state_name!="Hawaii")
+
+dem_2012 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group,text=state_name),
+               fill = NA, color = "#ffffff") +
+  geom_polygon(color = NA, aes(text=paste(county_name.y,", ",state_abbv,": ", round(democrat*100,1),sep=""))) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1",
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+ggplotly(dem_2012, tooltip="text")
+```
+
+### 2012 Republican Vote
+
+```{r}
+rep_2012 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group,text=state_name),
+               fill = NA, color = "#ffffff") +
+  geom_polygon(color = NA, aes(text=paste(county_name.y,", ",state_abbv,": ", round(republican*100,1),sep=""))) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323",
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+ggplotly(rep_2012, tooltip="text")
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### 2016 Democrat Vote
+
+```{r}
+county_data =
+  health_election_with_na |>
+  filter(year==2016) |>
+  right_join(counties,by="county_fips") |>
+  filter(state_name!="Alaska" & state_name!="Hawaii")
+
+dem_2016 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = democrat)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group,text=state_name),
+               fill = NA, color = "#ffffff") +
+  geom_polygon(color = NA, aes(text=paste(county_name.y,", ",state_abbv,": ", round(democrat*100,1),sep=""))) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#f5fbff",
+                      high="#4169e1",
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "democrat") +
+  theme_urbn_map()
+
+ggplotly(dem_2016, tooltip="text")
+```
+
+### 2016 Republican Vote
+
+```{r}
+rep_2016 =
+county_data |>
+  ggplot(aes(long, lat, group = group, fill = republican)) +
+  geom_polygon(data = states, mapping = aes(long, lat, group = group,text=state_name),
+               fill = NA, color = "#ffffff") +
+  geom_polygon(color = NA, aes(text=paste(county_name.y,", ",state_abbv,": ", round(republican*100,1),sep=""))) +
+  scale_fill_gradient(labels = scales::percent,
+                      guide = "colourbar",
+                      low="#fdf5f5",
+                      high="#dc2323",
+                      limits=c(0.05,0.95)) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme(legend.title = element_text(),
+        legend.key.width = unit(.5, "in")) +
+  labs(fill = "republican") +
+  theme_urbn_map()
+
+ggplotly(rep_2016, tooltip="text")
+```
