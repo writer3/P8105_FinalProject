@@ -1,0 +1,14 @@
+name: "Yay internet!"
+output_dir: "."
+navbar:
+  title: "Home"
+  right:
+    - text: "Final Report Code"
+      href: FinalReportCode.html
+    - text: Final Project Plotly
+      href: finalprojectplotly.html 
+    - icon: fa-github fa-lg
+      href: https://github.com/RiyadhHBaksh/P8105_FinalProject.git
+output:
+  html_document:
+    theme: cerulean
