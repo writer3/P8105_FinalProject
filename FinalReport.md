@@ -268,22 +268,21 @@ health metrics alone do not directly predict political behavior at the
 county level. A plot comparing premature death and preventable hospital
 stays showed a positive relationship, meaning that counties with higher
 rates of premature death also tended to have higher rates of preventable
-hospital stays (Figure 2). This could indicate that areas with poor
-health outcomes face systemic issues related to healthcare access or
-quality. When examining health metrics by political party, we found that
-counties with more physicians tended to lean Republican (Figure 3). This
-may seem counterintuitive at first, but it could be explained by the
-fact that counties with more physicians might also have wealthier or
-more urban populations, which tend to lean Republican. Similarly,
-counties with higher rates of premature death also tended to have a
-stronger Republican vote share. This might be linked to regions facing
-economic hardship or healthcare challenges, which often vote Republican
-in search of policies to address these issues. Regression Analysis To
-better understand the relationships between health metrics and political
-preferences, we conducted a regression analysis using covariates such as
-premature death, number of physicians, preventable hospital stays, and
-flu vaccinations to predict the percentage of Republican votes in each
-county (Table 1).
+hospital stays. This could indicate that areas with poor health outcomes
+face systemic issues related to healthcare access or quality. When
+examining health metrics by political party, we found that counties with
+more physicians tended to lean Republican. This may seem
+counterintuitive at first, but it could be explained by the fact that
+counties with more physicians might also have wealthier or more urban
+populations, which tend to lean Republican. Similarly, counties with
+higher rates of premature death also tended to have a stronger
+Republican vote share. This might be linked to regions facing economic
+hardship or healthcare challenges, which often vote Republican in search
+of policies to address these issues.
+
+### Regression Analysis
+
+    To better understand the relationships between health metrics and political preferences, we conducted a regression analysis using covariates such as premature death, number of physicians, preventable hospital stays, and flu vaccinations to predict the percentage of Republican votes in each county.
 
 - Premature Death: For every 1 standard deviation increase in premature
   deaths, the Republican vote share increased by 0.025% (p \< 0.005).
@@ -308,15 +307,91 @@ county (Table 1).
 To assess the overall strength of the correlation, we calculated the
 regression coefficients for the percentage of Republican votes in
 counties. The overall U.S. dataset had an R-squared value of 0.125,
-indicating significant variation in the data (Table 2). This suggests
-that while health metrics have some impact, they do not fully explain
-the variation in voting behavior. When we stratified the data by
-election years (2012 and 2016), we found that the variations remained
-large, suggesting that the relationship between health metrics and
-political views is not constant over time. Focusing specifically on New
-York counties, we observed a higher R-squared value of 0.387. This
-indicates that there is less variation in the data for New York counties
-compared to the overall U.S. dataset. This was expected, as New York has
-a more homogenous population with fewer extreme rural-urban divides than
-the national data, leading to a stronger correlation between health
-outcomes and voting behavior.
+indicating significant variation in the data. This suggests that while
+health metrics have some impact, they do not fully explain the variation
+in voting behavior. When we stratified the data by election years (2012
+and 2016), we found that the variations remained large, suggesting that
+the relationship between health metrics and political views is not
+constant over time. Focusing specifically on New York counties, we
+observed a higher R-squared value of 0.387. This indicates that there is
+less variation in the data for New York counties compared to the overall
+U.S. dataset. This was expected, as New York has a more homogenous
+population with fewer extreme rural-urban divides than the national
+data, leading to a stronger correlation between health outcomes and
+voting behavior.
+
+### Political trends in New York from 2012 to 2016
+
+Our analysis of political trends in New York from 2012 to 2016 revealed
+several key patterns:
+
+1.  We found that more counties in New York had a Republican majority
+    compared to those with a Democratic majority. The majority of the
+    state’s geography leans Republican, particularly in suburban and
+    rural areas, while urban centers, especially New York City, remain
+    solidly Democratic.
+
+2.  There are more counties with strong Republican support compared to
+    Democratic counties, which tend to show more moderate or less
+    strongly-aligned voting patterns. This suggests a geographical
+    divide between strongly Republican and less strongly Democratic
+    areas in New York.
+
+3.  From 2012 to 2016, many counties in New York became more
+    Republican-leaning. However, the New York City metropolitan area
+    remained a stronghold for the Democratic Party, showing no
+    significant change in its political alignment.
+
+The trend of Republican-leaning counties outside New York City and the
+strong Democratic support within the city can be attributed to the
+urban-rural divide. Urban areas, like New York City, tend to vote
+Democratic due to factors like higher diversity, younger populations,
+and progressive policies. In contrast, rural areas have more
+conservative views and lean toward the Republican Party, driven by
+different economic priorities and social values.
+
+Rural counties in New York, facing economic challenges such as the
+decline of manufacturing and agricultural sectors, may be shifting
+toward the Republican Party, which has focused on policies that promise
+economic revival. New York City, however, remains more Democratic due to
+its larger, more diverse population with a greater emphasis on social
+services and progressive economic policies. The shift in New York’s
+counties toward the Republican Party mirrors broader national trends
+where rural areas have moved rightward while urban areas have become
+more liberal. Similar patterns are seen in other studies, such as the
+growing rural-urban divide that has been a defining feature of recent
+U.S. elections.
+
+### Health Metrics in New York (2012–2016)
+
+Our analysis of health metrics in New York from 2012 to 2016 revealed
+some interesting patterns across counties:
+
+1.  More counties in New York showed higher rates of premature deaths
+    and a higher number of physicians. These trends indicate that
+    certain regions of the state may be facing healthcare challenges or
+    have greater access to healthcare providers.
+
+2.  In contrast, we found that some counties had lower rates of
+    preventable hospital stays and flu vaccinations. This suggests that
+    while some counties may have a greater concentration of healthcare
+    professionals, they might still face barriers to accessing
+    preventative care, including vaccinations and avoidable
+    hospitalizations
+
+Certain counties in upstate New York, particularly in rural areas, have
+higher rates of premature deaths, which could be linked to factors such
+as poor access to healthcare, economic hardship, and lifestyle factors
+like smoking and diet. Counties with higher availability tend to be
+wealthier or urbanized, such as in parts of Long Island and the Hudson
+Valley. These areas may have more healthcare infrastructure, but they
+also tend to vote Republican, suggesting a complex relationship between
+healthcare access and political preferences. We observed that some
+counties with high physician availability still had low rates of
+preventable hospital stays, which may indicate good primary care access
+or effective health interventions. Conversely, some counties had low flu
+vaccination rates, possibly due to less health outreach or resistance to
+vaccinations, which could vary depending on local attitudes or
+healthcare policies. Rural areas or regions with less health education
+may have lower vaccination rates, which can increase the risk of
+preventable illnesses.
