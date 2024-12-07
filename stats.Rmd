@@ -1,0 +1,171 @@
+---
+title: "Statistical Analysis"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE,warning=FALSE)
+```
+
+```{r}
+library(tidyverse)
+
+election =
+  read_csv("data/election.csv") |>
+  filter(party=="DEMOCRAT" | party=="REPUBLICAN") |>
+  group_by(county_fips,county_name,state_po,year,party,totalvotes) |>
+  summarize(
+    votes = sum(candidatevotes)
+  ) |>
+  mutate(
+    percent = votes/totalvotes,
+    county_fips = sprintf("%05d",county_fips),
+    year_county = paste(year,county_fips,sep="-")
+  ) |>
+  select(-totalvotes,-votes) |>
+  pivot_wider(
+    names_from = "party",
+    values_from = "percent"
+  ) |>
+  janitor::clean_names()
+
+health =
+  read_csv("data/health.csv") |>
+  mutate(
+    year = substr(yearspan,start=1,stop=4),
+    county_fips = paste(statecode,countycode,sep=""),
+    year_county = paste(year,county_fips,sep="-")
+  ) |>
+  filter(
+    measurename == "Premature death" |
+    measurename == "Preventable hospital stays" |
+    measurename == "Primary care physicians" |
+    measurename == "Flu vaccinations"
+  ) |>
+  select(year_county,year,county_fips,county,state,measurename,rawvalue) |>
+  pivot_wider(
+    names_from = "measurename",
+    values_from = "rawvalue"
+  ) |>
+  janitor::clean_names() |>
+  mutate(
+    premature_death = scale(premature_death),
+    primary_care_physicians = scale(primary_care_physicians),
+    preventable_hospital_stays = scale(preventable_hospital_stays),
+    flu_vaccinations = scale(flu_vaccinations)
+  )
+
+health_election =
+  left_join(election,health,by="year_county") |>
+  rename(
+    county_fips=county_fips.x,
+    year=year.x) |>
+  select(county_fips,county_name,state_po,year,democrat,republican,
+         premature_death,
+         physicians=primary_care_physicians,
+         preventable_hospital_stays,
+         flu_vaccinations) |>
+  filter(year==2012 | year==2016)
+
+health_election_with_na = health_election
+
+health_election = drop_na(health_election)
+
+# remove outliers in premature death
+quartiles = quantile(health_election$premature_death, probs=c(.25,.75))
+IQR = IQR(health_election$premature_death)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    premature_death > lower &
+    premature_death < upper
+  )
+
+# remove outliers in primary care physicians
+quartiles = quantile(health_election$physicians, probs=c(.25,.75))
+IQR = IQR(health_election$physicians)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    physicians > lower &
+    physicians < upper
+  )
+
+# remove outliers in preventable hospital stays
+quartiles = quantile(health_election$preventable_hospital_stays, probs=c(.25,.75))
+IQR = IQR(health_election$preventable_hospital_stays)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    preventable_hospital_stays > lower &
+    preventable_hospital_stays < upper
+  )
+
+# remove outliers in flu vaccinations
+quartiles = quantile(health_election$flu_vaccinations, probs=c(.25,.75))
+IQR = IQR(health_election$flu_vaccinations)
+
+lower = quartiles[1] - 1.5*IQR
+upper = quartiles[2] + 1.5*IQR
+
+health_election =
+  health_election |>
+  filter(
+    flu_vaccinations > lower &
+    flu_vaccinations < upper
+  )
+```
+
+We conducted a series of multiple linear regressions to quantify the effect of the health metrics on the `republican` vote share. There were a total of six regressions: the US for both years, the US for 2012, the US for 2016, NY state for both years, NY state for 2012, and NY state for 2016. The estimates for the coefficients and the corresponding R2 values are summarized in the tables below. Note that while not all estimates were significant, most were at the 5% level. Some key observations include:
+
+* $R^2$ is very low when looking at the entire US. This means that only a small amount of variation in the different political views can be explained by these four health metrics. That being said, when looking at a more homogeneous area such as New York state, $R^2$ goes up, so we can attribute more variation to the health metrics. This is important to keep in mind, as the predictive ability of this analysis is limited.
+
+* Since the data is centered and scaled, the interpretation of the coefficients has a different meaning. For example, across the US for both years, the coefficient on `premature_death` is 0.025. This suggests that all else being the same, increasing the `premature_death` by one standard deviation would suggest a 2.5% increase in `republican` vote share.
+
+* Positive estimates for the coefficients suggest a positive correlation between the covariate and the response (and negative means the opposite). In general, `republican` vote share goes up as `premature_death`, `physicians`, and `preventable_hospital_stays` goes up (except the opposite for `preventable_hospital_stays` with `NY_Overall` and `NY_2012`). There is a negative correlation with `flu_vaccinations` across the US, but a positive correlation within New York state.
+
+
+```{r}
+overall = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = health_election)
+
+overall_2012 = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = filter(health_election,year==2012))
+
+overall_2016 = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = filter(health_election,year==2016))
+
+NY = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = filter(health_election,state_po=="NY"))
+
+NY_2012 = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = filter(health_election,state_po=="NY",year==2012))
+
+NY_2016 = lm(republican ~ premature_death + physicians + preventable_hospital_stays + flu_vaccinations, data = filter(health_election,state_po=="NY",year==2016))
+
+reg = tibble(
+  term=broom::tidy(overall)$term,
+  US_Overall=overall$coefficients,
+  US_2012=overall_2012$coefficients,
+  US_2016=overall_2016$coefficients,
+  NY_Overall=NY$coefficients,
+  NY_2012=NY_2012$coefficients,
+  NY_2016=NY_2016$coefficients
+  )
+knitr::kable(reg, digits=3,caption="Regression Coefficients on Percent Republican")
+
+r2 = tibble(
+  US_Overall=broom::glance(overall)$r.squared,
+  US_2012=broom::glance(overall_2012)$r.squared,
+  US_2016=broom::glance(overall_2016)$r.squared,
+  NY_Overall=broom::glance(NY)$r.squared,
+  NY_2012=broom::glance(NY_2012)$r.squared,
+  NY_2016=broom::glance(NY_2016)$r.squared
+  )
+knitr::kable(r2, digits=3,caption="R2 Values")
+```

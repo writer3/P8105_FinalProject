@@ -2,7 +2,7 @@
 title: "Connecting Political Views and Health Metrics"
 author: "Riyadh Baksh (rhb2152), Anika Mitchell (am5088), Jeong Yun Yang (jy3306)"
 date: "`r Sys.Date()`"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -62,7 +62,7 @@ election =
   janitor::clean_names()
 ```
 
-We identified four measures that are the most robust in the datasets: `Premature death`, `PReventable hospital stays`, `Primary care physicians`, and `flu vaccinations`, and filtered for these four measurements. Since these measurements have different units and scales, we standardize each variable to improve visualization and statistical analysis. This means that for each health metric, a value of zero means the average, and each unit represents one standard deviation away. For example, a `premature_death` value of 1 means that county has a premature death rate that is one standard deviation higher than the average county.  
+We identified four measures that are the most robust in the datasets: `Premature death`, `Preventable hospital stays`, `Primary care physicians`, and `Flu vaccinations`, and filtered for these four measurements. Since these measurements have different units and scales, we standardize each variable to improve visualization and statistical analysis. This means that for each health metric, a value of zero means the average, and each unit represents one standard deviation away. For example, a `premature_death` value of 1 means that county has a premature death rate that is one standard deviation higher than the average county.  
 
 ```{r, message=FALSE}
 health =
